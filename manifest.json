@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-ghost-focus",
+  "name": "Ghost Focus",
+  "version": "0.1.0",
+  "minAppVersion": "0.9.12",
+  "description": "Ghost Focus to Obsidian",
+  "author": "Sami Korpela",
+  "authorUrl": "https://github.com/skipadu/",
+  "isDesktopOnly": false
+}

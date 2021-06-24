@@ -1,0 +1,27 @@
+{
+  "name": "obsidian-ghost-focus",
+  "version": "0.1.0",
+  "description": "Ghost Focus to Obsidian",
+  "main": "main.js",
+  "scripts": {
+    "dev": "rollup --config rollup.config.js -w",
+    "build": "rollup --config rollup.config.js --environment BUILD:production"
+  },
+  "keywords": [
+    "focus",
+    "ghost",
+    "obsidian"
+  ],
+  "author": "Sami Korpela",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^19.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.0",
+    "@rollup/plugin-typescript": "^8.2.1",
+    "@types/node": "^15.12.4",
+    "obsidian": "^0.12.5",
+    "rollup": "^2.52.2",
+    "tslib": "^2.3.0",
+    "typescript": "^4.3.4"
+  }
+}
