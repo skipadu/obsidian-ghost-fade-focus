@@ -29,12 +29,11 @@ export default class GhostFocusPlugin extends Plugin {
 		pluginState = { currentLine: -1 };
 		console.log('Loading GhostFocusPlugin');
 		this.registerCodeMirror((cm: CodeMirror.Editor) => {
-			cm.on("cursorActivity", this.onCursorActivity);
+			cm.on("update", this.onUpdate);
 		})
 	}
-	onCursorActivity(doc: CodeMirror.Doc) {
+	onUpdate(doc: CodeMirror.Doc) {
 		const currentCursorPos = doc.getCursor();
-		doc.getCursor().sticky
 		if (pluginState.currentLine !== currentCursorPos.line) {
 			setState('currentLine', currentCursorPos.line);
 			console.log("Current cursorPosition line:", currentCursorPos.line);
@@ -47,15 +46,10 @@ export default class GhostFocusPlugin extends Plugin {
 					if (child.className.match(ghostFocusClassName)) {
 						child.className = child.className.replace(ghostFocusClassName, '');
 					}
-					// child.className = child.className.concat(`ghost-focus-${getDistanceToCurrentLine(i)}`);
 					const distance = getDistanceToCurrentLine(i);
-					if (distance <= 5) {
-						// child.className = child.className.concat(`ghost-focus-${distance}`);
+					if (distance > 0 && distance <= 5) {
 						child.classList.add(`ghost-focus-${distance}`);
 					}
-					// else {
-					// 	child.className = child.className.concat(' ghost-focus');
-					// }
 				}
 			}
 		}
