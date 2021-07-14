@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-ghost-focus",
-  "name": "Ghost Focus",
+  "id": "obsidian-ghost-fade-focus",
+  "name": "Ghost Fade Focus",
   "version": "0.1.0",
   "minAppVersion": "0.9.12",
-  "description": "Ghost Focus to Obsidian",
+  "description": "Focused on the current line, others faded like a ghost!",
   "author": "Sami Korpela",
   "authorUrl": "https://github.com/skipadu/",
   "isDesktopOnly": true

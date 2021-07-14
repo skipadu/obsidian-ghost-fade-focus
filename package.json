@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-ghost-focus",
+  "name": "obsidian-ghost-fade-focus",
   "version": "0.1.0",
-  "description": "Ghost Focus to Obsidian",
+  "description": "Focused on the current line, others faded like a ghost!",
   "main": "main.js",
   "scripts": {
     "dev": "rollup --config rollup.config.js -w",
