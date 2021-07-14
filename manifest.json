@@ -6,5 +6,5 @@
   "description": "Ghost Focus to Obsidian",
   "author": "Sami Korpela",
   "authorUrl": "https://github.com/skipadu/",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }
