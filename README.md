@@ -3,6 +3,10 @@
 This is a plugin for [Obsidian](https://obsidian.md/) that help you focus to your writing.
 It will fade step by step 5 lines above and below of the current line where the cursor is located. 
 
+## Screenshots
+
+![Focus](https://raw.githubusercontent.com/skipadu/obsidian-ghost-fade-focus/main/images/focus.png "Focus")
+
 ## How to use
 
 When you enable the plugin, it will start to fade lines after cursor activity; moving cursor to another line or move at least a character forward or backward.
