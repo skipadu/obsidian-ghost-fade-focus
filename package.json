@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-ghost-fade-focus",
+  "name": "ghost-fade-focus",
   "version": "0.1.0",
   "description": "Focused on the current line, others faded like a ghost!",
   "main": "main.js",
@@ -14,6 +14,10 @@
   ],
   "author": "Sami Korpela",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skipadu/obsidian-ghost-fade-focus.git"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^19.0.0",
     "@rollup/plugin-node-resolve": "^13.0.0",
