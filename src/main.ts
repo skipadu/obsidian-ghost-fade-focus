@@ -1,4 +1,4 @@
-import { Plugin, Editor, MarkdownView } from "obsidian";
+import { Plugin, MarkdownView } from "obsidian";
 
 interface State {
   currentLine?: number;
@@ -23,9 +23,16 @@ export default class GhostFocusPlugin extends Plugin {
     this.addCommand({
       id: "toggle-plugin",
       name: "Toggle plugin on/off",
-      editorCallback: (editor: Editor, _view: MarkdownView) => {
-        setState("pluginEnabled", !pluginState.pluginEnabled);
-        this.removeGhostFadeFocusClassNamesOutsider(editor.lineCount());
+      checkCallback: (checking: boolean) => {
+        const mdView = this.app.workspace.activeLeaf.view as MarkdownView;
+        if (mdView && mdView.getMode() === "source") {
+          if (!checking) {
+            setState("pluginEnabled", !pluginState.pluginEnabled);
+            this.removeGhostFadeFocusClassNamesOutsider();
+          }
+          return true;
+        }
+        return false;
       },
     });
 
@@ -78,13 +85,13 @@ export default class GhostFocusPlugin extends Plugin {
     }
   }
 
-  removeGhostFadeFocusClassNamesOutsider(totalLines: number) {
+  removeGhostFadeFocusClassNamesOutsider() {
     this.app.workspace.iterateCodeMirrors((cm: CodeMirror.Editor) => {
       const doc = cm.getDoc();
       const currentCursorPos = doc.getCursor();
       this.removeGhostFadeFocusClassNames(
         cm,
-        totalLines,
+        cm.lineCount(),
         currentCursorPos.line
       );
     });
