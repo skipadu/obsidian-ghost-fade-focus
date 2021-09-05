@@ -28,7 +28,7 @@ export default class GhostFocusPlugin extends Plugin {
         if (mdView && mdView.getMode() === "source") {
           if (!checking) {
             setState("pluginEnabled", !pluginState.pluginEnabled);
-            this.removeGhostFadeFocusClassNamesOutsider();
+            this.removeGhostFadeFocusClassNamesFromCMs();
           }
           return true;
         }
@@ -46,22 +46,15 @@ export default class GhostFocusPlugin extends Plugin {
       const currentCursorPos = cm.getDoc().getCursor();
       if (pluginState.currentLine !== currentCursorPos.line) {
         setState("currentLine", currentCursorPos.line);
-        const totalLines = cm.lineCount();
-        this.removeGhostFadeFocusClassNames(
-          cm,
-          totalLines,
-          currentCursorPos.line
-        );
-        this.addGhostFadeFocusClassNames(cm, totalLines, currentCursorPos.line);
+        this.removeGhostFadeFocusClassNames(cm);
+        this.addGhostFadeFocusClassNames(cm);
       }
     }
   };
 
-  addGhostFadeFocusClassNames(
-    cm: CodeMirror.Editor,
-    totalLines: number,
-    currentCursorPosLine: number
-  ) {
+  addGhostFadeFocusClassNames(cm: CodeMirror.Editor) {
+    const totalLines = cm.lineCount();
+    const currentCursorPosLine = cm.getDoc().getCursor().line;
     for (let i = -5; i <= 5; i++) {
       const lineNumber = currentCursorPosLine + i;
       if (lineNumber >= 0 && lineNumber < totalLines) {
@@ -85,26 +78,16 @@ export default class GhostFocusPlugin extends Plugin {
     }
   }
 
-  removeGhostFadeFocusClassNamesOutsider() {
+  removeGhostFadeFocusClassNamesFromCMs() {
     this.app.workspace.iterateCodeMirrors((cm: CodeMirror.Editor) => {
-      const doc = cm.getDoc();
-      const currentCursorPos = doc.getCursor();
-      this.removeGhostFadeFocusClassNames(
-        cm,
-        cm.lineCount(),
-        currentCursorPos.line
-      );
+      this.removeGhostFadeFocusClassNames(cm);
     });
   }
 
-  removeGhostFadeFocusClassNames(
-    cm: CodeMirror.Editor,
-    totalLines: number,
-    currentCursorPosLine: number
-  ) {
-    for (let i = 0; i < totalLines; i++) {
+  removeGhostFadeFocusClassNames(cm: CodeMirror.Editor) {
+    for (let i = 0; i < cm.lineCount(); i++) {
       cm.removeLineClass(i, "wrap");
-      if (i === currentCursorPosLine) {
+      if (i === cm.getDoc().getCursor().line) {
         cm.addLineClass(i, "wrap", "CodeMirror-activeline");
       }
     }
@@ -113,11 +96,7 @@ export default class GhostFocusPlugin extends Plugin {
   onunload() {
     this.app.workspace.iterateCodeMirrors((cm: CodeMirror.Editor) => {
       cm.off("cursorActivity", this.onCursorActivity);
-      this.removeGhostFadeFocusClassNames(
-        cm,
-        cm.lineCount(),
-        cm.getDoc().getCursor().line
-      );
+      this.removeGhostFadeFocusClassNames(cm);
     });
   }
 }
