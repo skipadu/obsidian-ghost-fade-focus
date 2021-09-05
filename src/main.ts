@@ -1,12 +1,5 @@
 import { Plugin, MarkdownView } from "obsidian";
-
-interface State {
-  currentLine?: number;
-  pluginEnabled?: boolean;
-}
-type ValueOf<T> = T[keyof T];
-type PluginStateKey = keyof State;
-type PluginStateValue = ValueOf<State>;
+import { PluginStateKey, PluginStateValue, State } from "./state";
 
 let pluginState: State = {};
 const setState = (key: PluginStateKey, value: PluginStateValue) => {
