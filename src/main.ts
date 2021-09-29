@@ -29,9 +29,19 @@ export default class GhostFocusPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
+  onFileChange() {
+    if (this.settings.enabled) {
+      this.addGhostFadeFocusClassNamesToCMs();
+    }
+  }
+
   async onload() {
     await this.loadSettings();
     this.addSettingTab(new GhostFocusSettingTab(this.app, this));
+
+    this.registerEvent(
+      this.app.workspace.on("file-open", this.onFileChange.bind(this))
+    );
 
     pluginState = { currentLine: -1 };
 
@@ -45,6 +55,10 @@ export default class GhostFocusPlugin extends Plugin {
             this.settings.enabled = !this.settings.enabled;
             this.saveSettings();
             this.removeGhostFadeFocusClassNamesFromCMs();
+
+            if (this.settings.enabled) {
+              this.addGhostFadeFocusClassNamesToCMs();
+            }
           }
           return true;
         }
@@ -67,6 +81,12 @@ export default class GhostFocusPlugin extends Plugin {
       }
     }
   };
+
+  addGhostFadeFocusClassNamesToCMs() {
+    this.app.workspace.iterateCodeMirrors((cm: CodeMirror.Editor) => {
+      this.addGhostFadeFocusClassNames(cm);
+    });
+  }
 
   addGhostFadeFocusClassNames(cm: CodeMirror.Editor) {
     const totalLines = cm.lineCount();
