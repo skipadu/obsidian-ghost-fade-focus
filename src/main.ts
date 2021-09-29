@@ -1,5 +1,6 @@
 import { Plugin, MarkdownView } from "obsidian";
 import { PluginStateKey, PluginStateValue, State } from "./state";
+import { GhostFocusSettingTab } from "./settings";
 
 let pluginState: State = {};
 const setState = (key: PluginStateKey, value: PluginStateValue) => {
@@ -9,9 +10,30 @@ const setState = (key: PluginStateKey, value: PluginStateValue) => {
   };
 };
 
+interface GhostFocusSettings {
+  enabled: boolean;
+}
+
+const DEFAULT_SETTINGS: Partial<GhostFocusSettings> = {
+  enabled: false,
+};
+
 export default class GhostFocusPlugin extends Plugin {
+  settings: GhostFocusSettings;
+
+  async loadSettings() {
+    this.settings = Object.assign(DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
+  }
+
   async onload() {
-    pluginState = { currentLine: -1, pluginEnabled: true };
+    await this.loadSettings();
+    this.addSettingTab(new GhostFocusSettingTab(this.app, this));
+
+    pluginState = { currentLine: -1 };
 
     this.addCommand({
       id: "toggle-plugin",
@@ -20,7 +42,8 @@ export default class GhostFocusPlugin extends Plugin {
         const mdView = this.app.workspace.activeLeaf.view as MarkdownView;
         if (mdView && mdView.getMode() === "source") {
           if (!checking) {
-            setState("pluginEnabled", !pluginState.pluginEnabled);
+            this.settings.enabled = !this.settings.enabled;
+            this.saveSettings();
             this.removeGhostFadeFocusClassNamesFromCMs();
           }
           return true;
@@ -35,7 +58,7 @@ export default class GhostFocusPlugin extends Plugin {
   }
 
   onCursorActivity = (cm: CodeMirror.Editor) => {
-    if (pluginState.pluginEnabled) {
+    if (this.settings.enabled) {
       const currentCursorPos = cm.getDoc().getCursor();
       if (pluginState.currentLine !== currentCursorPos.line) {
         setState("currentLine", currentCursorPos.line);
@@ -54,7 +77,7 @@ export default class GhostFocusPlugin extends Plugin {
         if (i === 0) {
           cm.addLineClass(lineNumber, "wrap", "CodeMirror-activeline");
         } else {
-          if (pluginState.pluginEnabled) {
+          if (this.settings.enabled) {
             cm.addLineClass(
               lineNumber,
               "wrap",
