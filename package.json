@@ -23,7 +23,7 @@
     "@rollup/plugin-node-resolve": "^13.0.0",
     "@rollup/plugin-typescript": "^8.2.1",
     "@types/node": "^15.12.4",
-    "obsidian": "^0.12.5",
+    "obsidian": "^0.14.8",
     "rollup": "^2.52.2",
     "tslib": "^2.3.0",
     "typescript": "^4.3.4"
