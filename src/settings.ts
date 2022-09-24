@@ -47,13 +47,7 @@ export class GhostFocusSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.enabled = value;
             await this.plugin.saveSettings();
-
-            // TODO: Should we try to disable/refresh lines to get the fade off
-            // this.plugin.removeGhostFadeFocusClassNamesFromCMs();
-            // if (value) {
-            // this.plugin.addGhostFadeFocusClassNamesToCMs();
-            // }
-            this.plugin.refreshStuff();
+            this.plugin.cssVariablesBasedOnEnabledState();
           })
       );
 
