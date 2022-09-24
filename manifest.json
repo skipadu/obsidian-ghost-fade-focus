@@ -1,8 +1,8 @@
 {
   "id": "ghost-fade-focus",
   "name": "Ghost Fade Focus",
-  "version": "2.1.0",
-  "minAppVersion": "0.9.12",
+  "version": "3.0.0",
+  "minAppVersion": "0.15.9",
   "description": "Focused on the current line, others faded like a ghost!",
   "author": "Sami Korpela",
   "authorUrl": "https://github.com/skipadu/",
