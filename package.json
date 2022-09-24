@@ -1,17 +1,13 @@
 {
   "name": "ghost-fade-focus",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Focused on the current line, others faded like a ghost!",
   "main": "main.js",
   "scripts": {
     "dev": "rollup --config rollup.config.js -w",
     "build": "rollup --config rollup.config.js --environment BUILD:production"
   },
-  "keywords": [
-    "focus",
-    "ghost",
-    "obsidian"
-  ],
+  "keywords": ["focus", "ghost", "obsidian"],
   "author": "Sami Korpela",
   "license": "MIT",
   "repository": {
