@@ -53,6 +53,7 @@ export class GhostFocusSettingTab extends PluginSettingTab {
             // if (value) {
             // this.plugin.addGhostFadeFocusClassNamesToCMs();
             // }
+            this.plugin.refreshStuff();
           })
       );
 

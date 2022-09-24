@@ -53,6 +53,16 @@ export default class GhostFocusPlugin extends Plugin {
     );
   }
 
+  removeCSSVariables() {
+    this.rootElement = document.documentElement;
+    this.rootElement.style.removeProperty("--ghost-fade-focus-opacity-1");
+    this.rootElement.style.removeProperty("--ghost-fade-focus-opacity-2");
+    this.rootElement.style.removeProperty("--ghost-fade-focus-opacity-3");
+    this.rootElement.style.removeProperty("--ghost-fade-focus-opacity-4");
+    this.rootElement.style.removeProperty("--ghost-fade-focus-opacity-5");
+    this.rootElement.style.removeProperty("--ghost-fade-focus-opacity");
+  }
+
   async onload() {
     await this.loadSettings();
     this.addSettingTab(new GhostFocusSettingTab(this.app, this));
@@ -72,6 +82,7 @@ export default class GhostFocusPlugin extends Plugin {
             if (this.settings.enabled) {
               // this.addGhostFadeFocusClassNamesToCMs();
             }
+            this.refreshStuff();
           }
           return true;
         }
@@ -121,7 +132,7 @@ export default class GhostFocusPlugin extends Plugin {
         },
       });
 
-    function fadedLineDeco(view: EditorView) {
+    const fadedLineDeco = (view: EditorView) => {
       // if (this.settings.enabled) {
       const cursorPos = view.state.selection.main.head;
       const cursorPosLine = view.state.doc.lineAt(cursorPos).number;
@@ -148,8 +159,19 @@ export default class GhostFocusPlugin extends Plugin {
       }
       return builder.finish();
       // }
-    }
+    };
+    // if (this.settings.enabled) {
     this.registerEditorExtension(fadedLines());
     this.addCSSVariables();
+    // }
+  }
+
+  refreshStuff() {
+    if (this.settings.enabled) {
+      this.addCSSVariables();
+    } else {
+      this.removeCSSVariables();
+      this.app.workspace.updateOptions();
+    }
   }
 }
