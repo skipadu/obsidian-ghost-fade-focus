@@ -1,34 +1,17 @@
 import { Plugin, MarkdownView } from "obsidian";
-import { PluginStateKey, PluginStateValue, State } from "./state";
-import { GhostFocusSettingTab } from "./settings";
-
-let pluginState: State = {};
-const setState = (key: PluginStateKey, value: PluginStateValue) => {
-  pluginState = {
-    ...pluginState,
-    [key.valueOf()]: value,
-  };
-};
-
-interface GhostFocusSettings {
-  enabled: boolean;
-  opacity_1: number;
-  opacity_2: number;
-  opacity_3: number;
-  opacity_4: number;
-  opacity_5: number;
-  opacity: number;
-}
-
-const DEFAULT_SETTINGS: Partial<GhostFocusSettings> = {
-  enabled: false,
-  opacity_1: 0.85,
-  opacity_2: 0.7,
-  opacity_3: 0.55,
-  opacity_4: 0.4,
-  opacity_5: 0.25,
-  opacity: 0.1,
-};
+import {
+  EditorView,
+  Decoration,
+  ViewPlugin,
+  DecorationSet,
+  ViewUpdate,
+} from "@codemirror/view";
+import { Extension, RangeSetBuilder } from "@codemirror/state";
+import {
+  GhostFocusSettingTab,
+  GhostFocusSettings,
+  DEFAULT_SETTINGS,
+} from "./settings";
 
 export default class GhostFocusPlugin extends Plugin {
   settings: GhostFocusSettings;
@@ -42,45 +25,52 @@ export default class GhostFocusPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  onFileChange() {
-    if (this.settings.enabled) {
-      this.addGhostFadeFocusClassNamesToCMs();
-    }
-  }
-
   addCSSVariables() {
     this.rootElement = document.documentElement;
-    this.rootElement.style.setProperty('--ghost-fade-focus-opacity-1', `${this.settings.opacity_1}`);
-    this.rootElement.style.setProperty('--ghost-fade-focus-opacity-2', `${this.settings.opacity_2}`);
-    this.rootElement.style.setProperty('--ghost-fade-focus-opacity-3', `${this.settings.opacity_3}`);
-    this.rootElement.style.setProperty('--ghost-fade-focus-opacity-4', `${this.settings.opacity_4}`);
-    this.rootElement.style.setProperty('--ghost-fade-focus-opacity-5', `${this.settings.opacity_5}`);
-    this.rootElement.style.setProperty('--ghost-fade-focus-opacity', `${this.settings.opacity}`);
+    this.rootElement.style.setProperty(
+      "--ghost-fade-focus-opacity-1",
+      `${this.settings.opacity_1}`
+    );
+    this.rootElement.style.setProperty(
+      "--ghost-fade-focus-opacity-2",
+      `${this.settings.opacity_2}`
+    );
+    this.rootElement.style.setProperty(
+      "--ghost-fade-focus-opacity-3",
+      `${this.settings.opacity_3}`
+    );
+    this.rootElement.style.setProperty(
+      "--ghost-fade-focus-opacity-4",
+      `${this.settings.opacity_4}`
+    );
+    this.rootElement.style.setProperty(
+      "--ghost-fade-focus-opacity-5",
+      `${this.settings.opacity_5}`
+    );
+    this.rootElement.style.setProperty(
+      "--ghost-fade-focus-opacity",
+      `${this.settings.opacity}`
+    );
   }
 
   async onload() {
     await this.loadSettings();
     this.addSettingTab(new GhostFocusSettingTab(this.app, this));
 
-    this.registerEvent(
-      this.app.workspace.on("file-open", this.onFileChange.bind(this))
-    );
-
-    pluginState = { currentLine: -1 };
-
     this.addCommand({
       id: "toggle-plugin",
       name: "Toggle plugin on/off",
       checkCallback: (checking: boolean) => {
-        const mdView = this.app.workspace.activeLeaf.view as MarkdownView;
+        const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (mdView && mdView.getMode() === "source") {
           if (!checking) {
+            // TODO: Maybe should remove this setting altogether
             this.settings.enabled = !this.settings.enabled;
             this.saveSettings();
-            this.removeGhostFadeFocusClassNamesFromCMs();
 
+            // TODO: Maybe should remove this setting altogether
             if (this.settings.enabled) {
-              this.addGhostFadeFocusClassNamesToCMs();
+              // this.addGhostFadeFocusClassNamesToCMs();
             }
           }
           return true;
@@ -89,86 +79,77 @@ export default class GhostFocusPlugin extends Plugin {
       },
     });
 
-    this.registerCodeMirror((cm: CodeMirror.Editor) => {
-      cm.on("cursorActivity", this.onCursorActivity);
-    });
+    const baseTheme = EditorView.baseTheme({});
 
-    this.addCSSVariables();
-  }
+    const fadedLines = (): Extension => {
+      return [baseTheme, [], showFadedLines];
+    };
 
-  onCursorActivity = (cm: CodeMirror.Editor) => {
-    if (this.settings.enabled) {
-      const currentCursorPos = cm.getDoc().getCursor();
-      if (pluginState.currentLine !== currentCursorPos.line) {
-        setState("currentLine", currentCursorPos.line);
-        this.removeGhostFadeFocusClassNames(cm);
-        this.addGhostFadeFocusClassNames(cm);
-      }
-    }
-  };
+    const showFadedLines = ViewPlugin.fromClass(
+      class {
+        decorations: DecorationSet;
+        constructor(view: EditorView) {
+          this.decorations = fadedLineDeco(view);
+        }
 
-  addGhostFadeFocusClassNamesToCMs() {
-    this.app.workspace.iterateCodeMirrors((cm: CodeMirror.Editor) => {
-      this.addGhostFadeFocusClassNames(cm);
-    });
-  }
-
-  addGhostFadeFocusClassNames(cm: CodeMirror.Editor) {
-    const totalLines = cm.lineCount();
-    const currentCursorPosLine = cm.getDoc().getCursor().line;
-    for (let i = -5; i <= 5; i++) {
-      const lineNumber = currentCursorPosLine + i;
-      if (lineNumber >= 0 && lineNumber < totalLines) {
-        if (i === 0) {
-          cm.addLineClass(lineNumber, "wrap", "CodeMirror-activeline");
-        } else {
-          if (this.settings.enabled) {
-            cm.addLineClass(
-              lineNumber,
-              "wrap",
-              `ghost-fade-focus--${Math.abs(i)}`
-            );
+        update(update: ViewUpdate) {
+          if (
+            update.docChanged ||
+            update.viewportChanged ||
+            update.selectionSet
+          ) {
+            this.decorations = fadedLineDeco(update.view);
           }
         }
+      },
+      {
+        decorations: (v) => v.decorations,
       }
-    }
-    for (let i = 0; i < totalLines; i++) {
-      if (i !== currentCursorPosLine) {
-        cm.addLineClass(i, "wrap", "ghost-fade-focus");
+    );
+
+    const fadedLine = (index: number) =>
+      Decoration.line({
+        attributes: {
+          class: `ghost-fade-focus--${index}`,
+        },
+      });
+
+    const fadedLineOther = () =>
+      Decoration.line({
+        attributes: {
+          class: `ghost-fade-focus`,
+        },
+      });
+
+    function fadedLineDeco(view: EditorView) {
+      // if (this.settings.enabled) {
+      const cursorPos = view.state.selection.main.head;
+      const cursorPosLine = view.state.doc.lineAt(cursorPos).number;
+
+      let builder = new RangeSetBuilder<Decoration>();
+      for (let { from, to } of view.visibleRanges) {
+        for (let pos = from; pos <= to; ) {
+          let line = view.state.doc.lineAt(pos);
+
+          if (
+            line.number >= cursorPosLine - 5 &&
+            line.number <= cursorPosLine + 5
+          ) {
+            builder.add(
+              line.from,
+              line.from,
+              fadedLine(Math.abs(line.number - cursorPosLine))
+            );
+          } else {
+            builder.add(line.from, line.from, fadedLineOther());
+          }
+          pos = line.to + 1;
+        }
       }
+      return builder.finish();
+      // }
     }
-  }
-
-  removeGhostFadeFocusClassNamesFromCMs() {
-    this.app.workspace.iterateCodeMirrors((cm: CodeMirror.Editor) => {
-      this.removeGhostFadeFocusClassNames(cm);
-    });
-  }
-
-  removeGhostFadeFocusClassNames(cm: CodeMirror.Editor) {
-    for (let i = 0; i < cm.lineCount(); i++) {
-      cm.removeLineClass(i, "wrap");
-      if (i === cm.getDoc().getCursor().line) {
-        cm.addLineClass(i, "wrap", "CodeMirror-activeline");
-      }
-    }
-  }
-
-  removeCSSVariables() {
-    this.rootElement = document.documentElement;
-    this.rootElement.style.removeProperty('--ghost-fade-focus-opacity-1');
-    this.rootElement.style.removeProperty('--ghost-fade-focus-opacity-2');
-    this.rootElement.style.removeProperty('--ghost-fade-focus-opacity-3');
-    this.rootElement.style.removeProperty('--ghost-fade-focus-opacity-4');
-    this.rootElement.style.removeProperty('--ghost-fade-focus-opacity-5');
-    this.rootElement.style.removeProperty('--ghost-fade-focus-opacity');
-  }
-
-  onunload() {
-    this.app.workspace.iterateCodeMirrors((cm: CodeMirror.Editor) => {
-      cm.off("cursorActivity", this.onCursorActivity);
-      this.removeGhostFadeFocusClassNames(cm);
-    });
-    this.removeCSSVariables();
+    this.registerEditorExtension(fadedLines());
+    this.addCSSVariables();
   }
 }
